@@ -31,8 +31,20 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   webanalytics_project:
-    01_bronze: # match with folder name in models/
-      +schema: 01_bronze_dev # match with schema name in profiles.yml
-      +database: webanalytics_dev # match with catalog name in profiles.yml
-      +materialized: table
+    01_bronze:
+      +schema: 01_bronze                  # → <target.schema>_01_bronze
+      +materialized: incremental          # all tables: incremental, except products : table
       +file_format: delta
+      +incremental_strategy: append       # raw copy: only ever add new rows
+      +on_schema_change: append_new_columns
+
+    02_silver:
+      +schema: 02_silver
+      +materialized: incremental
+      +file_format: delta
+      +incremental_strategy: merge        # upsert on unique_key → reruns can't duplicate
+      +on_schema_change: fail             # silver columns change only on purpose
+
+    03_gold:
+      +schema: 03_gold
+      +materialized: materialized_view    # Databricks manages refresh
