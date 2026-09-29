@@ -1,5 +1,5 @@
 models:
-  - name: bronze_orders
+  - name: orders_bronze
     description: Raw orders copied from SQL Server, one row per order, appended incrementally on created_at.
     columns:
       - name: order_id
