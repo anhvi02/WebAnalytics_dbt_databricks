@@ -58,5 +58,5 @@ data_tests:
     02_silver:
       +severity: error
     03_gold:
-      +severity: warn
+      +severity: error
     
