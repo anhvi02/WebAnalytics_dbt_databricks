@@ -48,3 +48,15 @@ models:
     03_gold:
       +schema: 03_gold
       +materialized: materialized_view    # Databricks manages refresh
+
+data_tests:
+  webanalytics_project:
+    00_sources:
+      +severity: warn
+    01_bronze:
+      +severity: warn
+    02_silver:
+      +severity: error
+    03_gold:
+      +severity: warn
+    

@@ -1,0 +1,22 @@
+sources:
+ - name: source_webanalytics # name of the schema (databricks term) a.k.a schema (dbt term)
+   description: SQL Server web analytics data, via Lakehouse Federation
+   database: xomdata_foreign_catalog # name of the catalog (databricks term) a.k.a database (dbt term)
+   schema: web_analytics # should be the same as the [name] mentioned above 
+   
+
+   tables:
+    - name: orders
+      description: raw orders data from databricks foreign catalog
+      columns:
+        - name: order_id
+          data_tests:
+            - unique
+            - not_null
+      config:      
+        freshness:       
+          warn_after:
+          count: 24 
+          period: hour     
+        loaded_at_field: created_at
+            
