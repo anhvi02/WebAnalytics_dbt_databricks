@@ -1,53 +1,88 @@
 anchors:
   - &test_pk [unique, not_null]     # primary key
   - &test_fk [not_null]             # required / foreign key
+  - &test_flag                      # 0/1 flag columns
+    - accepted_values:
+        arguments:
+          values: [0, 1]
 
 sources:
- - name: source_webanalytics # given name for the source, later referenced in dbt models
-   description: SQL Server web analytics data, via Lakehouse Federation
-   database: xomdata_foreign_catalog # name of source catalog
-   schema: web_analytics # name of source schema
+  - name: source_webanalytics # given name for the source, later referenced in dbt models
+    description: SQL Server web analytics data, via Lakehouse Federation
+    database: xomdata_foreign_catalog # name of source catalog
+    schema: web_analytics # name of source schema
 
-   tables:
-    - name: orders
-      description: Raw orders data from databricks foreign catalog
-      columns: 
-        - name: order_id
-          data_tests: *test_pk
-        - name: website_session_id
-          data_tests: *test_fk
-        - name: user_id
-          data_tests: *test_fk
-        - name: primary_product_id
-          data_tests: *test_fk
-      config:      
-        freshness:       
-          warn_after:
-            count: 24 
-            period: hour     
-        loaded_at_field: created_at
+    config: # applies to every table below, unless a table overrides it
+      loaded_at_field: created_at
+      freshness:
+        warn_after: {count: 24, period: hour}
 
-    - name: order_items
-      description: Raw order items data from databricks foreign catalog
-      columns:
-        - name: order_item_id
-          data_tests: *test_pk
-        - name: order_id
-          data_tests: *test_fk
-        - name: product_id
-          data_tests: *test_fk
-        - name: is_primary_item
-          data_tests:
-            - accepted_values:
-                arguments:
-                  values: [0, 1]
-      config:      
-        freshness:       
-          warn_after:
-            count: 24 
-            period: hour     
-        loaded_at_field: created_at
+    tables:
+      - name: orders
+        description: Raw orders data from databricks foreign catalog
+        columns:
+          - name: order_id
+            data_tests: *test_pk
+          - name: website_session_id
+            data_tests: *test_fk
+          - name: user_id
+            data_tests: *test_fk
+          - name: primary_product_id
+            data_tests: *test_fk
 
-    
+      - name: order_items
+        description: Raw order items data from databricks foreign catalog
+        columns:
+          - name: order_item_id
+            data_tests: *test_pk
+          - name: order_id
+            data_tests: *test_fk
+          - name: product_id
+            data_tests: *test_fk
+          - name: is_primary_item
+            data_tests: *test_flag
 
-            
+      - name: order_item_refunds
+        description: Raw order item refunds data from databricks foreign catalog
+        columns:
+          - name: order_item_refund_id
+            data_tests: *test_pk
+          - name: order_item_id
+            data_tests: *test_fk
+          - name: order_id
+            data_tests: *test_fk
+
+      - name: products
+        description: Raw products data from databricks foreign catalog
+        config:
+          freshness: null # static lookup table, rarely gets new rows
+        columns:
+          - name: product_id
+            data_tests: *test_pk
+          - name: product_name
+            data_tests: [unique, not_null]
+
+      - name: website_sessions
+        description: Raw website sessions data from databricks foreign catalog
+        columns:
+          - name: website_session_id
+            data_tests: *test_pk
+          - name: user_id
+            data_tests: *test_fk
+          - name: is_repeat_session
+            data_tests: *test_flag
+          - name: device_type
+            data_tests:
+              - accepted_values:
+                  arguments:
+                    values: [desktop, mobile]
+
+      - name: website_pageviews
+        description: Raw website pageviews data from databricks foreign catalog
+        columns:
+          - name: website_pageview_id
+            data_tests: *test_pk
+          - name: website_session_id
+            data_tests: *test_fk
+          - name: pageview_url
+            data_tests: *test_fk
