@@ -85,4 +85,4 @@ sources:
           - name: website_session_id
             data_tests: *test_fk
           - name: pageview_url
-            data_tests: *test_fk
+            data_tests: [not_null]
