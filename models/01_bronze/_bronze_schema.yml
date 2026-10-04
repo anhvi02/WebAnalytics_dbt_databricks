@@ -1,15 +1,70 @@
+anchors:
+  - &test_pk [unique, not_null]     # test primary key
+
+
 models:
   - name: orders_bronze
-    description: Raw orders copied from SQL Server, one row per order, appended incrementally on created_at.
+    description: Raw copy of source orders, one row per order. Appended incrementally on created_at.
     columns:
       - name: order_id
-        description: Primary key of the order
-        data_tests:
-          - unique
-          - not_null
+        description: Primary key of the order.
+        data_tests: *test_pk
       - name: created_at
-        description: When the order was placed; drives the incremental filter
-        data_tests:
-          - not_null
-      - name: ingested_at
-        description: When dbt loaded the row into bronze
+        description: When the order was placed. Used as the incremental checkpoint.
+      - name: ingested_bronze_at
+        description: When dbt loaded the row into bronze.
+
+  - name: order_items_bronze
+    description: Raw copy of source order items, one row per product in an order. Appended incrementally on created_at.
+    columns:
+      - name: order_item_id
+        description: Primary key of the order item.
+        data_tests: *test_pk
+      - name: created_at
+        description: When the order item was created. Used as the incremental checkpoint.
+      - name: ingested_bronze_at
+        description: When dbt loaded the row into bronze.
+
+  - name: order_item_refunds_bronze
+    description: Raw copy of source order item refunds, one row per refunded item. Appended incrementally on created_at.
+    columns:
+      - name: order_item_refund_id
+        description: Primary key of the refund.
+        data_tests: *test_pk
+      - name: created_at
+        description: When the refund was issued. Used as the incremental checkpoint.
+      - name: ingested_bronze_at
+        description: When dbt loaded the row into bronze.
+
+  - name: website_sessions_bronze
+    description: Raw copy of source website sessions, one row per visit. Appended incrementally on created_at.
+    columns:
+      - name: website_session_id
+        description: Primary key of the session.
+        data_tests: *test_pk
+      - name: created_at
+        description: When the session started. Used as the incremental checkpoint.
+      - name: ingested_bronze_at
+        description: When dbt loaded the row into bronze.
+
+  - name: website_pageviews_bronze
+    description: Raw copy of source website pageviews, one row per page viewed. Appended incrementally on created_at.
+    columns:
+      - name: website_pageview_id
+        description: Primary key of the pageview.
+        data_tests: *test_pk
+      - name: created_at
+        description: When the page was viewed. Used as the incremental checkpoint.
+      - name: ingested_bronze_at
+        description: When dbt loaded the row into bronze.
+
+  - name: products_bronze
+    description: Raw copy of source products, one row per product.
+    columns:
+      - name: product_id
+        description: Primary key of the product.
+        data_tests: *test_pk
+      - name: created_at
+        description: When the product was launched.
+      - name: ingested_bronze_at
+        description: When dbt loaded the row into bronze.

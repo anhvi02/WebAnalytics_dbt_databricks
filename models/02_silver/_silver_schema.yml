@@ -1,0 +1,153 @@
+anchors:
+  - &test_pk [unique, not_null]     # primary key
+  - &test_fk [not_null]             # required / foreign key
+  - &test_time [not_null]
+  - &test_flag                      # 0/1 flag columns
+    - accepted_values:
+        arguments:
+          values: [0, 1]
+
+
+models:
+  - name: orders_silver
+    description: Cleaned orders, one row per order. Built from orders_bronze and merged on order_id, so reruns never create duplicates.
+    columns:
+      - name: order_id
+        description: Primary key of the order.
+        data_tests: *test_pk
+      - name: website_session_id
+        description: Session in which the order was placed. Joins to website_sessions_silver.
+        data_tests: *test_fk
+      - name: user_id
+        description: Customer who placed the order.
+        data_tests: *test_fk
+      - name: primary_product_id
+        description: The first product added to the cart for this order. Joins to products_silver.
+        data_tests: *test_fk
+      - name: items_purchased
+        description: Number of items in the order.
+      - name: price_usd
+        description: Total revenue of the order, in USD.
+      - name: cogs_usd
+        description: Total cost of goods sold for the order, in USD.
+      - name: created_at
+        description: When the order was placed.
+        data_tests: *test_time
+      - name: ingested_bronze_at
+        description: When the row was loaded into bronze, carried through from orders_bronze.
+        data_tests: *test_time
+
+  - name: order_items_silver
+    description: Cleaned order items, one row per product in an order. Built from order_items_bronze and merged on order_item_id.
+    columns:
+      - name: order_item_id
+        description: Primary key of the order item.
+        data_tests: *test_pk
+      - name: order_id
+        description: Order this item belongs to. Joins to orders_silver.
+        data_tests: *test_fk
+      - name: product_id
+        description: Product that was bought. Joins to products_silver.
+        data_tests: *test_fk
+      - name: is_primary_item
+        description: 1 if this was the first product added to the cart for the order, otherwise 0.
+        data_tests: *test_flag
+      - name: price_usd
+        description: Revenue of this item, in USD.
+      - name: cogs_usd
+        description: Cost of goods sold for this item, in USD.
+      - name: created_at
+        description: When the order item was created.
+        data_tests: *test_time
+      - name: ingested_bronze_at
+        description: When the row was loaded into bronze, carried through from order_items_bronze.
+        data_tests: *test_time
+
+  - name: order_item_refunds_silver
+    description: Cleaned order item refunds, one row per refunded item. Built from order_item_refunds_bronze and merged on order_item_refund_id.
+    columns:
+      - name: order_item_refund_id
+        description: Primary key of the refund.
+        data_tests: *test_pk
+      - name: order_item_id
+        description: Order item that was refunded. Joins to order_items_silver.
+        data_tests: *test_fk
+      - name: order_id
+        description: Order the refunded item belongs to. Joins to orders_silver.
+        data_tests: *test_fk
+      - name: refund_amount_usd
+        description: Amount refunded, in USD.
+      - name: created_at
+        description: When the refund was issued.
+        data_tests: *test_time
+      - name: ingested_bronze_at
+        description: When the row was loaded into bronze, carried through from order_item_refunds_bronze.
+        data_tests: *test_time
+
+  - name: website_sessions_silver
+    description: Cleaned website sessions, one row per visit. Built from website_sessions_bronze and merged on website_session_id.
+    columns:
+      - name: website_session_id
+        description: Primary key of the session.
+        data_tests: *test_pk
+      - name: user_id
+        description: Visitor who started the session. The same user can have many sessions.
+        data_tests: *test_fk
+      - name: is_repeat_session
+        description: 1 if the visitor had been to the site before, otherwise 0.
+        data_tests: *test_flag
+      - name: utm_source
+        description: Traffic source from the UTM tag (e.g. gsearch, bsearch). Null for direct or organic traffic.
+      - name: utm_campaign
+        description: Marketing campaign from the UTM tag. Null for direct or organic traffic.
+      - name: utm_content
+        description: Ad or creative from the UTM tag. Null for direct or organic traffic.
+      - name: device_type
+        description: Device used for the session.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [desktop, mobile]
+      - name: http_referer
+        description: Website the visitor came from. Null for direct traffic.
+      - name: created_at
+        description: When the session started.
+        data_tests: *test_time
+      - name: ingested_bronze_at
+        description: When the row was loaded into bronze, carried through from website_sessions_bronze.
+        data_tests: *test_time
+
+  - name: website_pageviews_silver
+    description: Cleaned website pageviews, one row per page viewed. Built from website_pageviews_bronze and merged on website_pageview_id.
+    columns:
+      - name: website_pageview_id
+        description: Primary key of the pageview.
+        data_tests: *test_pk
+      - name: website_session_id
+        description: Session in which the page was viewed. Joins to website_sessions_silver.
+        data_tests: *test_fk
+      - name: pageview_url
+        description: Path of the page that was viewed (e.g. /home, /cart).
+        data_tests: [not_null]
+      - name: created_at
+        description: When the page was viewed.
+        data_tests: *test_time
+      - name: ingested_bronze_at
+        description: When the row was loaded into bronze, carried through from website_pageviews_bronze.
+        data_tests: *test_time
+
+  - name: products_silver
+    description: Cleaned products, one row per product. Built from products_bronze.
+    columns:
+      - name: product_id
+        description: Primary key of the product.
+        data_tests: *test_pk
+      - name: product_name
+        description: Name of the product.
+        data_tests: [unique, not_null]
+      - name: created_at
+        description: When the product was launched.
+        data_tests: *test_time
+      - name: ingested_bronze_at
+        description: When the row was loaded into bronze, carried through from products_bronze.
+        data_tests: *test_time
