@@ -1,0 +1,13 @@
+
+
+snapshots:
+  - name: products_snapshot
+    description: "Slowly changing dimension Type 2 for products"
+    relation: source('source_webanalytics', 'products')
+    config:
+      schema: dev_01_bronze
+      database: webanalytics_dev
+      unique_key: product_id
+      strategy: check
+      check_cols: all
+      hard_deletes: ignore

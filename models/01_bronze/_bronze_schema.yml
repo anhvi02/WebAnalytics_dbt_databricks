@@ -58,13 +58,13 @@ models:
       - name: ingested_bronze_at
         description: When dbt loaded the row into bronze.
 
-  - name: products_bronze
-    description: Raw copy of source products, one row per product.
-    columns:
-      - name: product_id
-        description: Primary key of the product.
-        data_tests: *test_pk
-      - name: created_at
-        description: When the product was launched.
-      - name: ingested_bronze_at
-        description: When dbt loaded the row into bronze.
+  # - name: products_bronze
+  #   description: Raw copy of source products, one row per product.
+  #   columns:
+  #     - name: product_id
+  #       description: Primary key of the product.
+  #       data_tests: *test_pk
+  #     - name: created_at
+  #       description: When the product was launched.
+  #     - name: ingested_bronze_at
+  #       description: When dbt loaded the row into bronze.
